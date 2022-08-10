@@ -2,9 +2,12 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { NewsModule } from './news/news.module';
+import {ConfigModule} from "@nestjs/config";
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DATABASE_HOST,
@@ -15,6 +18,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       entities: [],
       synchronize: true,
     }),
+    NewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
