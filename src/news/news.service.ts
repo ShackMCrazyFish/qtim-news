@@ -3,7 +3,7 @@ import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { News } from './entities/news.entity';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 
 @Injectable()
 export class NewsService {
@@ -13,7 +13,11 @@ export class NewsService {
   ) {}
 
   create(createNewsDto: CreateNewsDto) {
-    return this.newsRepository.create(createNewsDto);
+    const news = new News();
+    news.title = createNewsDto.title;
+    news.content = createNewsDto.content;
+
+    return this.newsRepository.save(news);
   }
 
   findAll(): Promise<News[]> {
@@ -28,7 +32,7 @@ export class NewsService {
     return this.newsRepository.update(id, updateNewsDto);
   }
 
-  async remove(id: number): Promise<void> {
-    await this.newsRepository.delete(id);
+  remove(id: number): Promise<DeleteResult> {
+    return this.newsRepository.delete(id);
   }
 }
