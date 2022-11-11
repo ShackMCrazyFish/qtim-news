@@ -1,24 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { DeleteResult, Repository } from 'typeorm';
-import { hash } from 'typeorm/util/StringUtils';
+import { genSaltSync, hashSync } from 'bcryptjs';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
+  async create(dto: CreateUserDto) {
+    const salt = genSaltSync(4);
+    const existedUser = await this.findByEmail(dto.email);
+    if (existedUser) {
+      throw new InternalServerErrorException(
+        'Пользователь с таким email уже существует',
+      );
+    }
     const user = new User();
-    user.name = createUserDto.name;
-    user.password = hash(createUserDto.password);
+    user.email = dto.email;
+    user.passwordHash = hashSync(dto.password, salt);
 
     return this.userRepository.save(user);
+  }
+
+  findByEmail(email: string): Promise<User> {
+    return this.userRepository.findOneBy({ email });
   }
 
   findAll(): Promise<User[]> {
@@ -27,14 +37,6 @@ export class UsersService {
 
   findOne(id: number): Promise<User> {
     return this.userRepository.findOneBy({ id });
-  }
-
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id });
-    if (updateUserDto.name) user.name = updateUserDto.name;
-    if (updateUserDto.password) user.password = updateUserDto.password;
-
-    return this.userRepository.save(user);
   }
 
   remove(id: number): Promise<DeleteResult> {
