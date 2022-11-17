@@ -13,16 +13,17 @@ export class UserService {
   ) {}
 
   async create(dto: CreateUserDto) {
-    const salt = genSaltSync(4);
     const existedUser = await this.findByEmail(dto.email);
     if (existedUser) {
       throw new InternalServerErrorException(
         'Пользователь с таким email уже существует',
       );
     }
-    const user = new User();
-    user.email = dto.email;
-    user.passwordHash = hashSync(dto.password, salt);
+
+    const salt = genSaltSync(4);
+    const user = this.userRepository.create(dto);
+    user.password = hashSync(dto.password, salt);
+    user.salt = salt;
 
     return this.userRepository.save(user);
   }
