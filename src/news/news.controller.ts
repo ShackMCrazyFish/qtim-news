@@ -6,18 +6,18 @@ import {
   Patch,
   Param,
   Delete,
-  ValidationPipe,
-  UsePipes,
+  UseGuards,
 } from '@nestjs/common';
 import { NewsService } from './news.service';
 import { CreateNewsDto } from './dto/create-news.dto';
 import { UpdateNewsDto } from './dto/update-news.dto';
+import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
 
 @Controller('news')
 export class NewsController {
   constructor(private readonly newsService: NewsService) {}
 
-  @UsePipes(new ValidationPipe())
+  @UseGuards(LocalAuthGuard)
   @Post()
   create(@Body() createNewsDto: CreateNewsDto) {
     return this.newsService.create(createNewsDto);
@@ -33,11 +33,13 @@ export class NewsController {
     return this.newsService.findOne(+id);
   }
 
+  @UseGuards(LocalAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateNewsDto: UpdateNewsDto) {
     return this.newsService.update(+id, updateNewsDto);
   }
 
+  @UseGuards(LocalAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.newsService.remove(+id);

@@ -5,17 +5,17 @@ import {
   Body,
   Param,
   Delete,
-  UsePipes,
-  ValidationPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { LocalAuthGuard } from '../auth/guards/local-auth.guard';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UsePipes(new ValidationPipe())
+  @UseGuards(LocalAuthGuard)
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
@@ -31,6 +31,7 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
+  @UseGuards(LocalAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
