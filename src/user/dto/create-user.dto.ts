@@ -1,9 +1,9 @@
 import { IsString } from 'class-validator';
 
-export class CreateNewsDto {
+export class CreateUserDto {
   @IsString()
-  title: string;
+  email: string;
 
   @IsString()
-  content: string;
+  password: string;
 }
