@@ -8,10 +8,15 @@ import { AuthDto } from './dto/auth.dto';
 import { User } from '../user/entities/user.entity';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { hashSync } from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtServices: JwtService,
+  ) {}
+
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userService.findByEmail(email);
     if (!user) {
@@ -31,18 +36,15 @@ export class AuthService {
     return this.userService.create(dto);
   }
 
-  async login(dto: AuthDto): Promise<User> {
+  async login(dto: AuthDto): Promise<any> {
     const user = await this.userService.findByEmail(dto.email);
+    const payload = { email: user.email, sub: user.id };
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    const password = hashSync(dto.password, user.salt);
-
-    if (user.password !== password) {
-      throw new UnauthorizedException();
-    }
-
-    return user;
+    return {
+      access_token: this.jwtServices.sign(payload),
+    };
   }
 }
